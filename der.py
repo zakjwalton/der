@@ -102,7 +102,7 @@ if __name__ == '__main__':
         for key,value in dirInfo.items():
             print('{}\t{}'.format(value[1],key))
     elif args.is_filetype:
-        for key,value in sorted(fileTypeCnt.items(), key=lambda e: e[1], reverse=True)[0:19]:
+        for key,value in sorted(fileTypeCnt.items(), key=lambda e: e[1], reverse=True)[0:24]:
             print('{},{}'.format(key, value))
     else:
         # Print normal ouput in bytes
