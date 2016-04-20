@@ -9,6 +9,7 @@ import argparse
 import os, sys
 import stat
 import collections
+import math
 
 def traverseFs(path, dirInfo):
     numFiles = 0
@@ -41,19 +42,33 @@ def traverseFs(path, dirInfo):
 
     return (sizeBytes, numFiles)
 
+
+def readable(num):
+    num = int(num)
+    for unit in ['', 'K', 'M', 'G', 'T', 'P']:
+        if abs(num) < 1024:
+            if abs(num) < 9.9:
+                num = math.ceil(num*10)/10
+                return '{:.1f}{}'.format(num, unit)
+            return '{:.0f}{}'.format(num, unit)
+        num = num/1024
+    return 'Number too big!!'
+
+
 if __name__ == '__main__':
     # Parse args
     parser = argparse.ArgumentParser(description='der.py - \'It\'s Basically du\'', conflict_handler='resolve')
-    parser.add_argument('-h','--human-readable', dest = 'is_human', action = 'store_true')
-    parser.add_argument('-o','--ordered', dest = 'is_ordered', action = 'store_true')
-    parser.add_argument('path', nargs='?', default=os.curdir, help='Path to run this utility on')
+    g = parser.add_mutually_exclusive_group()
+    g.add_argument('-h','--human-readable', dest = 'is_human', action = 'store_true')
+    g.add_argument('-o','--ordered', dest = 'is_ordered', action = 'store_true')
+    g.add_argument('-c','--count', dest = 'is_count', action = 'store_true')
+    g.add_argument('path', nargs='?', default=os.curdir, help='Path to run this utility on')
     args = parser.parse_args()
 
-    if args.is_human:
-        print('This bitch is human')
-    if args.path != None:
-        print('Path is: ' + args.path)
-        print(os.stat(args.path))
+    # Verify that the path is valid
+    if (os.path.exists(args.path) != True):
+        print('Ivalid input, try again.')
+        sys.exit()
     # Call function to recurse through directory and put results in dictionary
     dirInfo = collections.OrderedDict()
     size, num = traverseFs(args.path, dirInfo)
@@ -62,6 +77,19 @@ if __name__ == '__main__':
     dirInfo[args.path].append(num)
 
     # Print output based on command line arguments
-    # print(dirInfo)
-    for key,value in dirInfo.items():
-        print('{}\t{}'.format(value[0],key))
+    if args.is_ordered:
+        # Print ordered output
+        for key,value in sorted(dirInfo.items(), key=lambda e: e[1][0], reverse=True):
+            print('{}\t{}'.format(value[0],key))
+    elif args.is_human:
+        # Print human readable output
+        for key,value in dirInfo.items():
+            print('{}\t{}'.format(readable(value[0]),key))
+    elif args.is_count:
+        # Print file count
+        for key,value in dirInfo.items():
+            print('{}\t{}'.format(value[1],key))
+    else:
+        # Print normal ouput in bytes
+        for key,value in dirInfo.items():
+            print('{}\t{}'.format(value[0],key))
