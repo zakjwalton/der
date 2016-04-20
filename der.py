@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.4
 
-# File: main.py
+# File: der.py
 # Author: Zak Walton
 # Class: CIS 452
 # Project: Experimental Study: File System Metrics
@@ -55,8 +55,10 @@ def traverseFs(path, dirInfo):
 
 def readable(num):
     num = int(num)
+    # Loop through each SI prefix, dividing by 1024 each iteration
     for unit in ['', 'K', 'M', 'G', 'T', 'P']:
         if abs(num) < 1024:
+            #display decimal only if number is less than 9.9
             if abs(num) < 9.9:
                 num = math.ceil(num*10)/10
                 return '{:.1f}{}'.format(num, unit)
@@ -102,6 +104,7 @@ if __name__ == '__main__':
         for key,value in dirInfo.items():
             print('{}\t{}'.format(value[1],key))
     elif args.is_filetype:
+        # Print the top 25 filetypes found recursively through the directory
         for key,value in sorted(fileTypeCnt.items(), key=lambda e: e[1], reverse=True)[0:24]:
             print('{},{}'.format(key, value))
     else:
