@@ -11,6 +11,8 @@ import stat
 import collections
 import math
 
+fileTypeCnt = {}
+
 def traverseFs(path, dirInfo):
     numFiles = 0
     sizeBytes = 0
@@ -36,9 +38,17 @@ def traverseFs(path, dirInfo):
             # Its a file, add size and increment file count
             numFiles += 1
             sizeBytes += statData.st_size
+            # Check if file type is in dictionary and increment count
+            splitPath = f.split('.')
+            if (len(splitPath) > 1):
+                type = splitPath[-1]
+                if type not in fileTypeCnt:
+                    fileTypeCnt[type] = 1
+                else:
+                    fileTypeCnt[type] += 1
         else:
             # Unknown file type, print a message
-            print('Skipping %s' % pathname)
+            pass
 
     return (sizeBytes, numFiles)
 
@@ -62,13 +72,15 @@ if __name__ == '__main__':
     g.add_argument('-h','--human-readable', dest = 'is_human', action = 'store_true')
     g.add_argument('-o','--ordered', dest = 'is_ordered', action = 'store_true')
     g.add_argument('-c','--count', dest = 'is_count', action = 'store_true')
-    g.add_argument('path', nargs='?', default=os.curdir, help='Path to run this utility on')
+    g.add_argument('-f','--filetype', dest = 'is_filetype', action = 'store_true')
+    parser.add_argument('path', nargs='?', default=os.curdir, help='Path to run this utility on')
     args = parser.parse_args()
 
     # Verify that the path is valid
     if (os.path.exists(args.path) != True):
         print('Ivalid input, try again.')
         sys.exit()
+
     # Call function to recurse through directory and put results in dictionary
     dirInfo = collections.OrderedDict()
     size, num = traverseFs(args.path, dirInfo)
@@ -89,6 +101,9 @@ if __name__ == '__main__':
         # Print file count
         for key,value in dirInfo.items():
             print('{}\t{}'.format(value[1],key))
+    elif args.is_filetype:
+        for key,value in sorted(fileTypeCnt.items(), key=lambda e: e[1], reverse=True)[0:19]:
+            print('{},{}'.format(key, value))
     else:
         # Print normal ouput in bytes
         for key,value in dirInfo.items():
