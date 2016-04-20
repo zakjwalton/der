@@ -13,6 +13,8 @@ import collections
 def traverseFs(path, dirInfo):
     numFiles = 0
     sizeBytes = 0
+    # Add size of my file
+    sizeBytes += os.lstat(path).st_size
     # loop through each file in this directory
     for f in os.listdir(path):
         pathname = os.path.join(path, f)
@@ -21,14 +23,14 @@ def traverseFs(path, dirInfo):
         if stat.S_ISLNK(mode):
             # This is a symlink, only add the size
             sizeBytes += statData.st_size
-        if stat.S_ISDIR(mode):
+        elif stat.S_ISDIR(mode):
             # It's a directory, recurse into it
-            dirInfo[pathname] = []
             size, num = traverseFs(pathname, dirInfo)
             sizeBytes += size
             numFiles += num
+            dirInfo[pathname] = []
             dirInfo[pathname].append(size)
-            dirInfo[pathname].append(numFiles)
+            dirInfo[pathname].append(num)
         elif stat.S_ISREG(mode):
             # Its a file, add size and increment file count
             numFiles += 1
@@ -54,10 +56,12 @@ if __name__ == '__main__':
         print(os.stat(args.path))
     # Call function to recurse through directory and put results in dictionary
     dirInfo = collections.OrderedDict()
-    dirInfo[args.path] = []
     size, num = traverseFs(args.path, dirInfo)
+    dirInfo[args.path] = []
     dirInfo[args.path].append(size)
     dirInfo[args.path].append(num)
 
     # Print output based on command line arguments
-    print(dirInfo)
+    # print(dirInfo)
+    for key,value in dirInfo.items():
+        print('{}\t{}'.format(value[0],key))
